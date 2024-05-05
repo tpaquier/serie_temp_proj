@@ -62,3 +62,4 @@ adfTest_valid <-function(series,kmax,type){ #ADF tests until no more autocorrela
 }
 
 adf <- adfTest_valid(ts,24,"ct")
+adf <- adfTest(ts, lag=2, type="ct")
