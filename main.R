@@ -27,8 +27,11 @@ diff_ts <- ts - lag(ts, -1)
 
 #Check for trends using LS
 summary(lm(ts ~ dates))
-summary(lm(diff_ts ~ dates_2))
+
 
 res_adf <- adfTest(diff_ts, lag=0, type="nc")
 
+plot(ts, xlab = 'date', 
+     ylab = "valeur de l'indice (base 100 en 2021)",
+     main = 'plot de la série de 1990 à 2024')
 
