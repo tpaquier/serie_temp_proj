@@ -61,8 +61,19 @@ adfTest_valid <-function(series,kmax,type){ #ADF tests until no more autocorrela
   return(adf)
 }
 
-
+adfTest_valid(ts,24,"ct")
 adf <- adfTest(ts, lag=2, type="ct")
+
+adfTest_valid(diff_ts,24, type="nc")#Unit root is rejected at 1%
+
+
+#
+
+
+
+
+
+
 
 
 png(file="graphs/plot_initial_de_la_serie.png",width=600, height=350)
