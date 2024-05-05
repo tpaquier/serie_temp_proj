@@ -31,7 +31,23 @@ summary(lm(ts ~ dates))
 
 res_adf <- adfTest(diff_ts, lag=0, type="nc")
 
-plot(ts, xlab = 'date', 
+png(file="graphs/plot_initial_de_la_serie.png",width=600, height=350)
+plot(x=dates, y=ts, type='l',
+     xlab = 'date', 
      ylab = "valeur de l'indice (base 100 en 2021)",
      main = 'plot de la série de 1990 à 2024')
+ticks <- seq(min(dates), max(dates), by = 2)
+axis(1, at = ticks)
+dev.off()
+
+
+png(file="graphs/plot_de_la_serie_differenciee.png",width=600, height=350)
+plot(ts, xlab = 'date', 
+     ylab = "valeur de X_t - X_t-1",
+     main = 'plot de la série différenciée (ordre1) de 1990 à 2024')
+ticks <- seq(min(dates), max(dates), by = 2)
+axis(1, at = ticks)
+dev.off()
+
+plot(x = dates, y = ts, type='l')
 
