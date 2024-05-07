@@ -126,71 +126,72 @@ stats::pacf(diff_ts) ###AR(2)
 #ACF and PACF steer us at testing MA(2), AR(2), and mixed ARMA models.
 
 #ARMA(2,2)
-res22 <- astsa::sarima(xdata = time_serie, p = 2, d = 1, q = 2, details=FALSE)
-res22$fit
+res22 <- astsa::sarima(xdata = diff_ts, p = 2, d = 0, q = 2, details=FALSE)
 #seems a little bit too complicated as the p_values are high
 #as the p_values of the MA part are the worst, we start by checking if there is a model with 
 #better p_values going down on the MA part
 
 #ARMA(2,1)
-res21 <- astsa::sarima(xdata=time_serie,p=2,d=1,q=1, details=FALSE)
-res21$fit
+res21 <- astsa::sarima(xdata=time_serie,p=2,d=0,q=1, details=FALSE)
 #as the coefficients are not that good, we might check if 
 #it is not the AR part that was too complicated
 
 #ARMA(1,2)
-res12 <- astsa::sarima(xdata = time_serie,p=1,d=1,q=2, details=FALSE)
-res12$fit
+res12 <- astsa::sarima(xdata = time_serie,p=1,d=0,q=2, details=FALSE)
 #it's a bit better but nothing from the other world
 #we might also check the results for an arima(1,1,1)
 
 #ARMA(1,1)
-res11 <- astsa::sarima(xdata = time_serie, p=1,d=1,q=1, details=FALSE)
-res11$fit
+res11 <- astsa::sarima(xdata = time_serie, p=1,d=0,q=1, details=FALSE)
 #Maybe the best fit of all for now
 
 
 #Now lets check for 'extreme cases' of an AR(2) or 1 and of a MA(2) or 1
-res20 <- astsa::sarima(xdata = time_serie, p=2,d=1,q=0, details=FALSE)
+res20 <- astsa::sarima(xdata = time_serie, p=2,d=0,q=0, details=FALSE)
 #The fit is good
 
-res02 <- astsa::sarima(xdata = time_serie, p=0,d=1,q=2, details=FALSE)
-res01 <- astsa::sarima(xdata = time_serie, p=0,d=1,q=1, details=FALSE)
+res02 <- astsa::sarima(xdata = time_serie, p=0,d=0,q=2, details=FALSE)
+res01 <- astsa::sarima(xdata = time_serie, p=0,d=0,q=1, details=FALSE)
 #these two are really not better than the ones before
 
-#At this point, we still consider ARMA(1,1)
-#we now can do checks to see how it is 'really'
 
-res11$ttable
-res12$ttable
-res21$ttable
-res22$ttable
-
+#At this point, we still consider ARMA(1,1), AR(2) and MA(2)
 
 portes::LjungBox(obj = res11$fit)
 #p_values are quite high, we thus cannot reject the fact that this model might 
 #be good
 
 portes::LjungBox(obj=res20$fit)
+portes::LjungBox(obj=res02$fit)
 
 #p_values are also quite high, we might want to compare it to other tests, or
 #at least keep it in mind for the next steps
 
-res11$fit$aic
-res20$fit$aic
 
-#the one with the lowest aic is the arima(2,1,0)
+res11$ICs
+res20$ICs
+res02$ICs
 
+#Both AIC and BIC choose the AR(2)
+
+#==============================================================================#
+##### Question 5 ####
+#==============================================================================#
+#Now that we know that the best fit for the differenciated series is an AR(2)
+#We can express our model as an ARIMA(2,1,0)
+
+res20$fit$coef
+res20$ttable
+-1.96*sqrt(var(res20$fit$residuals))/length(res20$fit$residuals)
+#==============================================================================#
+##### Question 6-9 ####
+#==============================================================================#
+#Let's represent the confidence interval for the future values X_T+1 and X_T+2
 
 ts_data <- ts(data = data$Valeur)
 
-png(file="graphs/plot_des_predictions_arima(2,1,1).png",width=600, height=350)
-astsa::sarima.for(xdata = ts_data,6,2,1,1, 
-                  main = 'prediction')
-dev.off()
-
-png(file="graphs/plot_des_predictions_arima(2,1,0).png",width=600, height=350)
-astsa::sarima.for(xdata = ts_data, n.ahead = 6, p = 2,d = 1,q = 0,
+png(file="graphs/plot_des_predictions_arima(2,1,0).png",width=1200, height=700)
+astsa::sarima.for(xdata = ts_data, n.ahead = 2, p = 2,d = 1,q = 0,
                   main='prediction')
 dev.off()
 
