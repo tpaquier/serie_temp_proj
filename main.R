@@ -33,10 +33,12 @@ time_serie <- zoo(data[[2]])
 #==============================================================================#
 ##### Question 2 ####
 #==============================================================================#
-
+#We consider the differenciated serie of order 1.
 diff_ts <- time_serie - lag(time_serie, -1)
 
 #Check for trends using LS
+model <- lm(time_serie ~ dates)
+
 summary(lm(time_serie ~ dates))#Strong evidence supporting trend
 summary(lm(diff_ts ~ dates_diff))
 
@@ -96,11 +98,11 @@ ur.kpss(diff_ts, type=c('mu'))@cval
 #==============================================================================#
 #Here, we plot the series before and after differenciating it
 
-png(file="graphs/plot_initial_de_la_serie.png",width=1200, height=700)
+png(file="graphs/initial_ts_plot.png",width=1200, height=700)
 plot(x=dates, y=time_serie, type='l',
-     xlab = 'date', 
-     ylab = "valeur de l'indice (base 100 en 2021)",
-     main = 'plot de la série de 1990 à 2024')
+     xlab = 'Date', 
+     ylab = "Index value (set as 100 in 2021)",
+     main = 'Time serie plot from 1990 to 2024')
 ticks <- seq(min(dates), max(dates), by = 2)
 axis(1, at = ticks)
 dev.off()
