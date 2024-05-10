@@ -10,6 +10,8 @@ library(urca)
 library(astsa)
 library(forecast)
 library(portes)
+library(feasts)
+library(plotrix)
 
 #==============================================================================#
 ##### Import ####
@@ -198,6 +200,34 @@ astsa::sarima.for(xdata = ts_data, n.ahead = 2, p = 2,d = 1,q = 0,
 dev.off()
 
 
+res20$fit
+
+str(res20)
+
+feasts::gg_arma(res20)
+
+arima_roots <- polyroot(c(res20$fit$coef[3],res20$fit$coef[2],res20$fit$coef[1]))
+
+
+
+#=============================================================#
+#### racines ####
+#==============================================================#
+
+inv_root <- c(1/Mod(arima_roots[2]))
+y <- c(0)
+png(file="graphs/inverse_des_modules.png",width=1200, height=700)
+plot(x = inv_root, y = y,  asp = 1,
+     xlim = c(-1, 1), ylim = c(-1,1), 
+     col='red', pch=19, 
+     xlab = 'inverse du module',
+     ylab = '',
+     main = "représentation de l'inverse des modules des racines")
+abline(h=0, col='black')
+abline(v=0, col='black')
+grid(col = 'lightgray', lty = 2, lwd = 1)
+draw.circle(0, 0, 1, nv = 1000, border = NULL, col = NA, lty = 1, lwd = 1)
+dev.off()
 
 
 
