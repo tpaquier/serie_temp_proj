@@ -211,18 +211,18 @@ arima_roots <- polyroot(c(res20$fit$coef[3],res20$fit$coef[2],res20$fit$coef[1])
 
 
 #=============================================================#
-#### racines ####
+#### roots ####
 #==============================================================#
 
 inv_root <- c(1/Mod(arima_roots[2]))
 y <- c(0)
-png(file="graphs/inverse_des_modules.png",width=1200, height=700)
+png(file="graphs/inverse_of_modules.png",width=1200, height=700)
 plot(x = inv_root, y = y,  asp = 1,
      xlim = c(-1, 1), ylim = c(-1,1), 
      col='red', pch=19, 
-     xlab = 'inverse du module',
+     xlab = 'inverse of module',
      ylab = '',
-     main = "représentation de l'inverse des modules des racines")
+     main = "representation of the root's module inverse")
 abline(h=0, col='black')
 abline(v=0, col='black')
 grid(col = 'lightgray', lty = 2, lwd = 1)
