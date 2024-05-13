@@ -76,7 +76,7 @@ adfTest_valid <-function(series,kmax,type){
 adfTest_valid(time_serie, 24, 'ct')#2 lags are needed for the ADF test
 #P-value = 0.61 ; we cannot reject the trend stationnarity
 
-adfTest_valid(diff_ts, 24, 'ct')#1 lag is needed for the ADF test on the differenciated series
+adfTest_valid(diff_ts, 24, 'c')#1 lag is needed for the ADF test on the differenciated series
 #P-value = 0.01 ; we now have evidence supporting stationnarity
 
 
