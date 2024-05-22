@@ -118,6 +118,25 @@ axis(1, at = ticks)
 dev.off()
 
 
+#Both on the same graph
+png(file="graphs/comparison_plots.png", width=2400, height=700) # Increased width for two plots
+par(mfrow=c(1, 2))
+
+plot(x=dates, y=time_serie, type='l',
+     xlab = 'Date', 
+     ylab = "Index value (set as 100 in 2021)",
+     main = 'Time serie plot from 1990 to 2024')
+ticks <- seq(min(dates), max(dates), by = 2)
+axis(1, at = ticks)
+
+plot(x=dates_diff, y=diff_ts, type='l',
+     xlab = 'Date', 
+     ylab = "Value",
+     main = 'Differentiated time serie plot from 1990 to 2024')
+ticks <- seq(min(dates), max(dates), by = 2)
+axis(1, at = ticks)
+
+dev.off()
 #==============================================================================#
 ##### Question 4 ####
 #==============================================================================#
@@ -125,6 +144,12 @@ dev.off()
 
 stats::acf(diff_ts) ###MA(2)
 stats::pacf(diff_ts) ###AR(2)
+
+png(file="graphs/acf_pacf_diff_ts.png", width=1200, height=700)
+par(mfrow=c(1, 2))
+acf(diff_ts, main='ACF of differentiated time series')
+pacf(diff_ts, main='PACF of differentiated time series')
+dev.off()
 #ACF and PACF steer us at testing MA(2), AR(2), and mixed ARMA models.
 
 #ARMA(2,2)
@@ -134,26 +159,25 @@ res22 <- astsa::sarima(xdata = diff_ts, p = 2, d = 0, q = 2, details=FALSE)
 #better p_values going down on the MA part
 
 #ARMA(2,1)
-res21 <- astsa::sarima(xdata=time_serie,p=2,d=0,q=1, details=FALSE)
+res21 <- astsa::sarima(xdata=time_serie,p=2,d=1,q=1, details=FALSE)
 #as the coefficients are not that good, we might check if 
 #it is not the AR part that was too complicated
 
 #ARMA(1,2)
-res12 <- astsa::sarima(xdata = time_serie,p=1,d=0,q=2, details=FALSE)
+res12 <- astsa::sarima(xdata = time_serie,p=1,d=1,q=2, details=FALSE)
 #it's a bit better but nothing from the other world
 #we might also check the results for an arima(1,1,1)
 
 #ARMA(1,1)
-res11 <- astsa::sarima(xdata = time_serie, p=1,d=0,q=1, details=FALSE)
+res11 <- astsa::sarima(xdata = time_serie, p=1,d=1,q=1, details=FALSE)
 #Maybe the best fit of all for now
 
 
 #Now lets check for 'extreme cases' of an AR(2) or 1 and of a MA(2) or 1
-res20 <- astsa::sarima(xdata = time_serie, p=2,d=0,q=0, details=FALSE)
+res20 <- astsa::sarima(xdata = time_serie, p=2,d=1,q=0, details=FALSE)
 #The fit is good
 
-res02 <- astsa::sarima(xdata = time_serie, p=0,d=0,q=2, details=FALSE)
-res01 <- astsa::sarima(xdata = time_serie, p=0,d=0,q=1, details=FALSE)
+res02 <- astsa::sarima(xdata = time_serie, p=0,d=1,q=2, details=FALSE)
 #these two are really not better than the ones before
 
 
