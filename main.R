@@ -42,6 +42,7 @@ model <- lm(time_serie ~ dates)
 summary(lm(time_serie ~ dates))#Strong evidence supporting trend
 summary(lm(diff_ts ~ dates_diff))
 
+
 #Unit root tests
 #Augmented Dickey-Fuller test
 #Necessary hypothesis to check : Residuals are uncorrelated
@@ -57,7 +58,7 @@ Qtests <- function(series, k, fitdf=0) {
 }
 Qtests(adf@test$lm$residuals[0:24],length(adf@test$lm$coefficients))
 
-#adfTest_valid -< function to check the lag needed for the ADF test to be performed
+#adfTest_valid -> function to check the lag needed for the ADF test to be performed
 adfTest_valid <-function(series,kmax,type){
   k <- 0
   noautocorr <- 0
@@ -153,7 +154,7 @@ dev.off()
 #ACF and PACF steer us at testing MA(2), AR(2), and mixed ARMA models.
 
 #ARMA(2,2)
-res22 <- astsa::sarima(xdata = diff_ts, p = 2, d = 0, q = 2, details=FALSE)
+res22 <- astsa::sarima(xdata = time_serie, p = 2, d = 1, q = 2, details=FALSE)
 #seems a little bit too complicated as the p_values are high
 #as the p_values of the MA part are the worst, we start by checking if there is a model with 
 #better p_values going down on the MA part
@@ -170,7 +171,7 @@ res12 <- astsa::sarima(xdata = time_serie,p=1,d=1,q=2, details=FALSE)
 
 #ARMA(1,1)
 res11 <- astsa::sarima(xdata = time_serie, p=1,d=1,q=1, details=FALSE)
-#Maybe the best fit of all for now
+#Maybe the best fit of all for now, but still the AR1 coeff is not significant
 
 
 #Now lets check for 'extreme cases' of an AR(2) or 1 and of a MA(2) or 1
@@ -181,24 +182,21 @@ res02 <- astsa::sarima(xdata = time_serie, p=0,d=1,q=2, details=FALSE)
 #these two are really not better than the ones before
 
 
-#At this point, we still consider ARMA(1,1), AR(2) and MA(2)
+#At this point, we still consider AR(2) and MA(2)
 
-portes::LjungBox(obj = res11$fit)
-#p_values are quite high, we thus cannot reject the fact that this model might 
-#be good
 
 portes::LjungBox(obj=res20$fit)
 portes::LjungBox(obj=res02$fit)
 
-#p_values are also quite high, we might want to compare it to other tests, or
-#at least keep it in mind for the next steps
+#p_values are also quite high, which indicate that we cannot reject the null hyp
+#of absence of correlation
 
+#To decide which model to keep, let's compare the ICs of each model
 
-res11$ICs
 res20$ICs
 res02$ICs
 
-#Both AIC and BIC choose the AR(2)
+#Both AIC and BIC choose the AR(2) => this will be our model of interest
 
 #==============================================================================#
 ##### Question 5 ####
@@ -209,6 +207,8 @@ res02$ICs
 res20$fit$coef
 res20$ttable
 -1.96*sqrt(var(res20$fit$residuals))/length(res20$fit$residuals)
+
+
 #==============================================================================#
 ##### Question 6-9 ####
 #==============================================================================#
@@ -216,10 +216,66 @@ res20$ttable
 
 ts_data <- ts(data = data$Valeur)
 
-png(file="graphs/plot_des_predictions_arima(2,1,0).png",width=1200, height=700)
 astsa::sarima.for(xdata = ts_data, n.ahead = 2, p = 2,d = 1,q = 0,
-                  main='prediction')
+                  main='Prediction of future values at T+1 and T+2')
+
+#The sarima.for function plots confidence intervals of +- 1*se and +- 2*se 
+#Let's plot our own confidence intervals
+#Refer to the report to have the general idea behind the construction of these intervals
+
+prediction <- astsa::sarima.for(xdata = ts_data, n.ahead = 2, p = 2,d = 1,q = 0,
+                         main='Prediction of future values at T+1 and T+2')
+prediction$pred
+est_se <- sqrt(res20$fit$sigma2)
+
+
+#For T+1
+first_upper_bound <- prediction$pred[1] + 1.96*est_se
+first_lower_bound <- prediction$pred[1] - 1.96*est_se
+
+#For T+2
+sec_upper_bound <- prediction$pred[2] + 1.96*est_se*sqrt(1+res20$fit$coef[1]**2)
+sec_lower_bound <- prediction$pred[2] - 1.96*est_se*sqrt(1+res20$fit$coef[1]**2)
+
+
+#We keep the last 50 observations
+df_pred <- data.frame(ts_data, dates)[311:410 ,]
+
+
+new_dates <- as.yearmon(seq(from=2024+2/12,to=2024+3/12,by=1/12))
+prediction_df <- data.frame(
+  ts_data = c(prediction$pred[1], prediction$pred[2]),
+  dates = new_dates
+  )
+
+#We assign new columns to help us plot
+df_pred <- rbind(df_pred, prediction_df)
+df_pred$is_last_two <- FALSE
+df_pred$is_last_two[(nrow(df_pred)-1):nrow(df_pred)] <- TRUE
+
+df_pred$upper_bound <- NA
+df_pred$lower_bound <- NA
+
+df_pred$upper_bound[(nrow(df_pred)-1)] <- first_upper_bound
+df_pred$lower_bound[(nrow(df_pred)-1)] <- first_lower_bound
+df_pred$upper_bound[nrow(df_pred)] <- sec_upper_bound
+df_pred$lower_bound[nrow(df_pred)] <- sec_lower_bound
+
+#The final plot !!
+png(file="graphs/predictons_plot.png",width=1200, height=700)
+ggplot(data=df_pred, aes(x=dates, y=ts_data)) +
+  geom_line() +
+  geom_point(aes(color=is_last_two), size=0.9) +
+  geom_ribbon(data=df_pred[df_pred$is_last_two, ], aes(ymin=lower_bound, ymax=upper_bound), fill='red', alpha=0.2) +
+  scale_color_manual(values = c('FALSE' = 'black', 'TRUE' = 'red')) +
+  theme_minimal() +
+  labs(title="T+1 and T+2 predictions and associated confidence bounds") +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  guides(color = "none")
 dev.off()
+
 
 
 
